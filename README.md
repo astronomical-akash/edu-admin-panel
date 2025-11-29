@@ -2,6 +2,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/astronomical-akash/edu-admin-panel)
 
+<!-- Last deployment trigger: 2025-11-29 14:42 -->
+
 ## Getting Started
 
 First, run the development server:
