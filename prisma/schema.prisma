@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User & Auth
+enum Role {
+  SUPER_ADMIN
+  ACADEMIC_ADMIN
+  TEACHER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String?  // Hashed, if using email/password
+  image     String?
+  role      Role     @default(TEACHER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  createdResources Resource[] @relation("CreatedResources")
+  updatedResources Resource[] @relation("UpdatedResources")
+}
+
+// Hierarchy
+model Class {
+  id        String    @id @default(cuid())
+  name      String    @unique // e.g. "Class 8", "Class 10"
+  subjects  Subject[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Subject {
+  id        String    @id @default(cuid())
+  name      String    // e.g. "Physics"
+  board     String?   // e.g. "CBSE", "ICSE"
+  classId   String
+  class     Class     @relation(fields: [classId], references: [id])
+  chapters  Chapter[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([name, classId])
+}
+
+model Chapter {
+  id         String   @id @default(cuid())
+  title      String
+  orderIndex Int      @default(0)
+  subjectId  String
+  subject    Subject  @relation(fields: [subjectId], references: [id])
+  topics     Topic[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Topic {
+  id         String     @id @default(cuid())
+  title      String
+  orderIndex Int        @default(0)
+  chapterId  String
+  chapter    Chapter    @relation(fields: [chapterId], references: [id])
+  subtopics  Subtopic[]
+  resources  Resource[]
+  quizzes    Quiz[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Subtopic {
+  id             String     @id @default(cuid())
+  title          String
+  description    String?
+  orderIndex     Int        @default(0)
+  topicId        String
+  topic          Topic      @relation(fields: [topicId], references: [id])
+  resources      Resource[]
+  quizzes        Quiz[]
+  requiredLayers Layer[]    @relation("SubtopicRequiredLayers")
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Layer {
+  id          String     @id @default(cuid())
+  name        String     @unique // e.g. "Layer 0", "Layer 1"
+  description String?
+  resources   Resource[]
+  quizzes     Quiz[]
+  subtopics   Subtopic[] @relation("SubtopicRequiredLayers")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// Content
+enum ResourceType {
+  QUIZ
+  VIDEO
+  PRINTABLE
+  INFOGRAPHICS
+  SLIDES
+  MINDMAP
+}
+
+enum ContentStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+}
+
+model Resource {
+  id          String        @id @default(cuid())
+  title       String
+  type        ResourceType
+  description String?       // Description for all resource types
+  content     String?       // Quiz JSON or Mindmap markdown
+  fileUrl     String?       // Local file URL for uploaded files
+  fileName    String?       // Original filename
+  fileSize    Int?          // File size in bytes
+  mimeType    String?       // MIME type of uploaded file
+  driveFileId String?       // Legacy: Google Drive File ID (kept for compatibility)
+  webViewLink String?       // Legacy: Google Drive View Link
+  downloadUrl String?       // Legacy: Google Drive Download Link
+  language    String        @default("en") // "bn", "en", "bn-en"
+  difficulty  String        @default("medium") // "basic", "medium", "advanced"
+  tags        Json?         // Array of strings
+  status      ContentStatus @default(DRAFT)
+  orderIndex  Int           @default(0)
+
+  // Hierarchy Links
+  topicId     String
+  topic       Topic         @relation(fields: [topicId], references: [id])
+  subtopicId  String?
+  subtopic    Subtopic?     @relation(fields: [subtopicId], references: [id])
+  layerId     String
+  layer       Layer         @relation(fields: [layerId], references: [id])
+
+  // Audit
+  createdById String
+  createdBy   User          @relation("CreatedResources", fields: [createdById], references: [id])
+  updatedById String?
+  updatedBy   User?         @relation("UpdatedResources", fields: [updatedById], references: [id])
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Quiz {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  maxMarks    Int           @default(0)
+  settings    Json?         // { timeLimit: 30, showAnswers: true, shuffle: true }
+  status      ContentStatus @default(DRAFT)
+
+  // Hierarchy Links
+  topicId     String
+  topic       Topic         @relation(fields: [topicId], references: [id])
+  subtopicId  String?
+  subtopic    Subtopic?     @relation(fields: [subtopicId], references: [id])
+  layerId     String
+  layer       Layer         @relation(fields: [layerId], references: [id])
+
+  questions   QuizQuestion[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum QuestionType {
+  MCQ_SINGLE
+  MCQ_MULTI
+  TRUE_FALSE
+  SHORT_ANSWER
+}
+
+model QuizQuestion {
+  id           String       @id @default(cuid())
+  quizId       String
+  quiz         Quiz         @relation(fields: [quizId], references: [id])
+  questionText String
+  questionType QuestionType
+  explanation  String?
+  difficulty   String       @default("medium")
+  orderIndex   Int          @default(0)
+  options      QuizOption[]
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model QuizOption {
+  id          String       @id @default(cuid())
+  questionId  String
+  question    QuizQuestion @relation(fields: [questionId], references: [id])
+  optionText  String
+  isCorrect   Boolean      @default(false)
+  rationale   String?
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
