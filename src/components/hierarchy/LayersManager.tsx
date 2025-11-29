@@ -70,22 +70,22 @@ export function LayersManager({ initialLayers }: { initialLayers: Layer[] }) {
             if (editingLayer) {
                 // Update existing layer
                 const res = await updateLayer(editingLayer.id, data)
-                if (res.success && res.data) {
+                if ('success' in res && res.success && res.data) {
                     setLayers(layers.map(l => l.id === editingLayer.id ? res.data : l))
                     setOpen(false)
                     setEditingLayer(null)
                     form.reset()
-                } else if (res.error) {
+                } else if ('error' in res) {
                     setError(typeof res.error === 'string' ? res.error : JSON.stringify(res.error))
                 }
             } else {
                 // Create new layer
                 const res = await createLayer(data)
-                if (res.success && res.data) {
+                if ('success' in res && res.success && res.data) {
                     setLayers([...layers, res.data])
                     setOpen(false)
                     form.reset()
-                } else if (res.error) {
+                } else if ('error' in res) {
                     setError(typeof res.error === 'string' ? res.error : JSON.stringify(res.error))
                 }
             }
@@ -102,11 +102,11 @@ export function LayersManager({ initialLayers }: { initialLayers: Layer[] }) {
             setError(null)
             const res = await deleteLayer(deletingLayerId)
 
-            if (res.success) {
+            if ('success' in res && res.success) {
                 setLayers(layers.filter(l => l.id !== deletingLayerId))
                 setDeletingLayerId(null)
-            } else if (res.error) {
-                setError(typeof res.error === 'string' ? res.error : res.error.toString())
+            } else if ('error' in res) {
+                setError(typeof res.error === 'string' ? res.error : (res.error as any).toString())
                 setDeletingLayerId(null)
             }
         } catch (err) {
