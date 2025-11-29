@@ -3,6 +3,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ResourceTableView } from "@/components/resources/ResourceTableView"
 import { ResourceBrowser } from "@/components/resources/ResourceBrowser"
 
+// Force dynamic rendering to avoid database access during build
+export const dynamic = 'force-dynamic'
+
 export default async function ResourcesPage() {
     return (
         <div className="container mx-auto py-10">
@@ -35,4 +38,3 @@ export default async function ResourcesPage() {
         </div>
     )
 }
-

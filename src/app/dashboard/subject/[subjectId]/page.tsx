@@ -2,6 +2,9 @@ import { getSubjectDetails } from "@/actions/hierarchy"
 import { SubjectHierarchyManager } from "@/components/hierarchy/SubjectHierarchyManager"
 import { notFound } from "next/navigation"
 
+// Force dynamic rendering to avoid database access during build
+export const dynamic = 'force-dynamic'
+
 export default async function SubjectPage({ params }: { params: Promise<{ subjectId: string }> }) {
     try {
         const { subjectId } = await params
