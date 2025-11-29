@@ -58,7 +58,7 @@ export function QuizEditor() {
     const [layers, setLayers] = useState<any[]>([])
 
     const form = useForm<z.infer<typeof QuizSchema>>({
-        resolver: zodResolver(QuizSchema) as any,
+        resolver: zodResolver(QuizSchema) as any, // Fix: Type cast to avoid mismatch
         defaultValues: {
             questions: [{
                 questionText: "",
