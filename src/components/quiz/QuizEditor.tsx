@@ -58,7 +58,7 @@ export function QuizEditor() {
     const [layers, setLayers] = useState<any[]>([])
 
     const form = useForm<z.infer<typeof QuizSchema>>({
-        resolver: zodResolver(QuizSchema),
+        resolver: zodResolver(QuizSchema) as any,
         defaultValues: {
             questions: [{
                 questionText: "",
@@ -115,7 +115,7 @@ export function QuizEditor() {
 
 
     async function onSubmit(data: z.infer<typeof QuizSchema>) {
-        const res = await createQuiz(data)
+        const res = await createQuiz({ ...data, status: "DRAFT" })
         if (res.success) {
             router.push('/dashboard/quizzes')
             router.refresh()
@@ -246,7 +246,13 @@ export function QuizEditor() {
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
                         <h2 className="text-xl font-bold">Questions</h2>
-                        <Button type="button" onClick={() => appendQuestion({ questionText: "", questionType: "MCQ_SINGLE", options: [{ optionText: "", isCorrect: false }] })}>
+                        <Button type="button" onClick={() => appendQuestion({
+                            questionText: "",
+                            questionType: "MCQ_SINGLE",
+                            difficulty: "medium",
+                            orderIndex: questionFields.length,
+                            options: [{ optionText: "", isCorrect: false }]
+                        })}>
                             <Plus className="w-4 h-4 mr-2" /> Add Question
                         </Button>
                     </div>
