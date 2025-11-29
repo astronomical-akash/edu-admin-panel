@@ -1,6 +1,9 @@
 import { getLayers, createLayer } from "@/actions/hierarchy"
 import { LayersManager } from "@/components/hierarchy/LayersManager"
 
+// Force dynamic rendering to avoid database access during build
+export const dynamic = 'force-dynamic'
+
 export default async function LayersPage() {
     const layers = await getLayers()
 

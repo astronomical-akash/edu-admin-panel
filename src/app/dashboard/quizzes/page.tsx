@@ -11,6 +11,9 @@ import {
 } from "@/components/ui/table"
 import { Plus } from "lucide-react"
 
+// Force dynamic rendering to avoid database access during build
+export const dynamic = 'force-dynamic'
+
 export default async function QuizzesPage() {
     const quizzes = await getQuizzes()
 
